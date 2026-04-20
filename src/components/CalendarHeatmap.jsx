@@ -41,10 +41,7 @@ function cellColor(comp, isFuture) {
   return 'var(--success)'
 }
 
-export default function CalendarHeatmap({ goalsData, recurringGoals }) {
-  const gymData = useMemo(() => {
-    try { return JSON.parse(localStorage.getItem('tracker-gym') || '{}') } catch { return {} }
-  }, [goalsData])
+export default function CalendarHeatmap({ goalsData, recurringGoals, gymData = {} }) {
 
   const weeks = useMemo(buildWeeks, [])
   const todayStr = toDateStr(new Date())

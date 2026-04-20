@@ -221,7 +221,7 @@ export default function App() {
         </div>
 
         <div className="card full-card">
-          <CalendarHeatmap goalsData={goalsData} recurringGoals={recurringGoals} />
+          <CalendarHeatmap goalsData={goalsData} recurringGoals={recurringGoals} gymData={gymData} />
         </div>
       </main>
 
