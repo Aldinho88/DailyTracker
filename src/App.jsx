@@ -29,6 +29,7 @@ export default function App() {
   const [notesData, setNotesData]           = useLocalStorage('tracker-notes', {})
   const [settings, setSettings]             = useLocalStorage('tracker-settings', { reminderEnabled: false, reminderTime: '08:00', userEmail: '', syncKey: '' })
   const [calorieProfile, setCalorieProfile] = useLocalStorage('tracker-calorie-profile', {})
+  const [foodLog, setFoodLog]               = useLocalStorage('tracker-food-log', [])
   const [showSettings, setShowSettings]     = useState(false)
   const [loggedIn, setLoggedIn]             = useState(() => !!sessionStorage.getItem('tracker-session'))
   const [currentUser, setCurrentUser]       = useState(() => sessionStorage.getItem('tracker-session') || '')
@@ -44,6 +45,7 @@ export default function App() {
       if (remote['tracker-gym'])             setGymData(remote['tracker-gym'])
       if (remote['tracker-notes'])           setNotesData(remote['tracker-notes'])
       if (remote['tracker-calorie-profile']) setCalorieProfile(remote['tracker-calorie-profile'])
+      if (remote['tracker-food-log'])        setFoodLog(remote['tracker-food-log'])
     }
   )
 
@@ -56,6 +58,7 @@ export default function App() {
       'tracker-gym':             gymData,
       'tracker-notes':           notesData,
       'tracker-calorie-profile': calorieProfile,
+      'tracker-food-log':        foodLog,
     })
   }
 
@@ -260,7 +263,7 @@ export default function App() {
         </div>
 
         <div className="card full-card">
-          <FoodLogger apiKey={settings.openaiKey || ''} />
+          <FoodLogger apiKey={settings.openaiKey || ''} foodLog={foodLog} onFoodLogChange={setFoodLog} />
         </div>
 
         <div className="card full-card">

@@ -52,21 +52,16 @@ function MacroBadge({ label, value, color }) {
   )
 }
 
-export default function FoodLogger({ apiKey }) {
-  const [image, setImage]         = useState(null)  // { base64, mimeType, previewUrl }
-  const [text, setText]           = useState('')
-  const [loading, setLoading]     = useState(false)
-  const [result, setResult]       = useState(null)
-  const [error, setError]         = useState('')
-  const [log, setLog]             = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tracker-food-log') || '[]') } catch { return [] }
-  })
+export default function FoodLogger({ apiKey, foodLog = [], onFoodLogChange }) {
+  const [image, setImage]     = useState(null)
+  const [text, setText]       = useState('')
+  const [loading, setLoading] = useState(false)
+  const [result, setResult]   = useState(null)
+  const [error, setError]     = useState('')
   const fileRef = useRef()
 
-  function saveLog(newLog) {
-    setLog(newLog)
-    localStorage.setItem('tracker-food-log', JSON.stringify(newLog))
-  }
+  const log = foodLog
+  function saveLog(newLog) { onFoodLogChange(newLog) }
 
   function handleFile(file) {
     if (!file) return
