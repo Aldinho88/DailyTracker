@@ -8,6 +8,7 @@ import GymTracker from './components/GymTracker'
 import DayNotes from './components/DayNotes'
 import CalendarHeatmap from './components/CalendarHeatmap'
 import SettingsModal from './components/SettingsModal'
+import CalorieCalculator from './components/CalorieCalculator'
 import LoginScreen from './components/LoginScreen'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useFirestoreSync } from './hooks/useFirestoreSync'
@@ -26,6 +27,7 @@ export default function App() {
   const [gymData, setGymData]               = useLocalStorage('tracker-gym', {})
   const [notesData, setNotesData]           = useLocalStorage('tracker-notes', {})
   const [settings, setSettings]             = useLocalStorage('tracker-settings', { reminderEnabled: false, reminderTime: '08:00', userEmail: '', syncKey: '' })
+  const [calorieProfile, setCalorieProfile] = useLocalStorage('tracker-calorie-profile', {})
   const [showSettings, setShowSettings]     = useState(false)
   const [loggedIn, setLoggedIn]             = useState(() => !!sessionStorage.getItem('tracker-session'))
   const [currentUser, setCurrentUser]       = useState(() => sessionStorage.getItem('tracker-session') || '')
@@ -34,23 +36,25 @@ export default function App() {
   const { write, status: syncStatus, lastSynced } = useFirestoreSync(
     settings.syncKey,
     remote => {
-      if (remote['tracker-goals'])       setGoalsData(remote['tracker-goals'])
-      if (remote['tracker-recurring'])   setRecurringGoals(remote['tracker-recurring'])
-      if (remote['tracker-metrics'])     setMetrics(remote['tracker-metrics'])
-      if (remote['tracker-weight-log'])  setWeightLog(remote['tracker-weight-log'])
-      if (remote['tracker-gym'])         setGymData(remote['tracker-gym'])
-      if (remote['tracker-notes'])       setNotesData(remote['tracker-notes'])
+      if (remote['tracker-goals'])           setGoalsData(remote['tracker-goals'])
+      if (remote['tracker-recurring'])       setRecurringGoals(remote['tracker-recurring'])
+      if (remote['tracker-metrics'])         setMetrics(remote['tracker-metrics'])
+      if (remote['tracker-weight-log'])      setWeightLog(remote['tracker-weight-log'])
+      if (remote['tracker-gym'])             setGymData(remote['tracker-gym'])
+      if (remote['tracker-notes'])           setNotesData(remote['tracker-notes'])
+      if (remote['tracker-calorie-profile']) setCalorieProfile(remote['tracker-calorie-profile'])
     }
   )
 
   function syncNow() {
     write({
-      'tracker-goals':      goalsData,
-      'tracker-recurring':  recurringGoals,
-      'tracker-metrics':    metrics,
-      'tracker-weight-log': weightLog,
-      'tracker-gym':        gymData,
-      'tracker-notes':      notesData,
+      'tracker-goals':           goalsData,
+      'tracker-recurring':       recurringGoals,
+      'tracker-metrics':         metrics,
+      'tracker-weight-log':      weightLog,
+      'tracker-gym':             gymData,
+      'tracker-notes':           notesData,
+      'tracker-calorie-profile': calorieProfile,
     })
   }
 
@@ -238,6 +242,9 @@ export default function App() {
           <div className="right-panel">
             <div className="card">
               <BodyMetrics metrics={metrics} onUpdate={setMetrics} />
+            </div>
+            <div className="card">
+              <CalorieCalculator profile={calorieProfile} onProfileChange={setCalorieProfile} />
             </div>
             <div className="card">
               <WeightTracker
