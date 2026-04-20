@@ -6,7 +6,7 @@ const DAYS_OPTIONS = [
   { value: 'daily',    label: 'Every day' },
   { value: 'weekdays', label: 'Weekdays' },
   { value: 'weekends', label: 'Weekends' },
-  { value: 'custom',   label: 'Custom…' },
+  { value: 'custom',   label: 'Other' },
 ]
 
 const DOW = ['Su','Mo','Tu','We','Th','Fr','Sa']
@@ -381,19 +381,21 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
               >
                 {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              <label className="settings-freq-label">
-                Goal:
-                <input
-                  className="settings-input settings-freq-input"
-                  type="number"
-                  min="1"
-                  max="7"
-                  placeholder="—"
-                  value={newHabit.timesPerWeek}
-                  onChange={e => setNewHabit(p => ({ ...p, timesPerWeek: e.target.value }))}
-                />
-                days/wk
-              </label>
+              {newHabit.days === 'custom' && (
+                <label className="settings-freq-label">
+                  Goal:
+                  <input
+                    className="settings-input settings-freq-input"
+                    type="number"
+                    min="1"
+                    max="7"
+                    placeholder="—"
+                    value={newHabit.timesPerWeek}
+                    onChange={e => setNewHabit(p => ({ ...p, timesPerWeek: e.target.value }))}
+                  />
+                  days/wk
+                </label>
+              )}
               <button className="add-btn" onClick={addHabit}>{editId ? 'Save' : 'Add'}</button>
               {editId && (
                 <button className="add-btn" style={{background:'var(--surface2)',color:'var(--text-muted)',border:'1px solid var(--border)'}}

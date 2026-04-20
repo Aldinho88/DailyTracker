@@ -22,7 +22,7 @@ const SCHEDULE_OPTIONS = [
   { value: 'daily',    label: 'Every day' },
   { value: 'weekdays', label: 'Weekdays' },
   { value: 'weekends', label: 'Weekends' },
-  { value: 'custom',   label: 'Custom days' },
+  { value: 'custom',   label: 'Other' },
 ]
 
 const TIME_OPTIONS = [
@@ -131,7 +131,7 @@ export default function GoalList({
         <select className="add-opt-select" value={timeOfDay} onChange={e => setTimeOfDay(e.target.value)}>
           {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
-        {schedule !== 'none' && (
+        {schedule === 'custom' && (
           <label className="add-opt-freq-label">
             Goal:
             <input
