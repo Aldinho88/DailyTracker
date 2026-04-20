@@ -6,7 +6,37 @@ const DAYS_OPTIONS = [
   { value: 'daily',    label: 'Every day' },
   { value: 'weekdays', label: 'Weekdays' },
   { value: 'weekends', label: 'Weekends' },
+  { value: 'custom',   label: 'Custom…' },
 ]
+
+const DOW = ['Su','Mo','Tu','We','Th','Fr','Sa']
+
+function daysLabel(days) {
+  if (days === 'daily')    return 'Daily'
+  if (days === 'weekdays') return 'Weekdays'
+  if (days === 'weekends') return 'Weekends'
+  if (Array.isArray(days)) return days.map(d => DOW[d]).join(' ')
+  return days
+}
+
+function DayPicker({ selected, onChange }) {
+  function toggle(i) {
+    const next = selected.includes(i) ? selected.filter(d => d !== i) : [...selected, i].sort((a,b)=>a-b)
+    onChange(next)
+  }
+  return (
+    <div className="day-picker">
+      {DOW.map((label, i) => (
+        <button
+          key={i}
+          type="button"
+          className={`day-pick-btn ${selected.includes(i) ? 'on' : ''}`}
+          onClick={() => toggle(i)}
+        >{label}</button>
+      ))}
+    </div>
+  )
+}
 
 const TIME_OPTIONS = [
   { value: '',          label: 'Any time' },
@@ -189,7 +219,8 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
     onSettingsChange(prev => typeof updater === 'function' ? updater(prev) : updater)
   }
 
-  const [newHabit, setNewHabit]   = useState({ text: '', days: 'daily', timeOfDay: '' })
+  const [newHabit, setNewHabit]   = useState({ text: '', days: 'daily', customDays: [1,2,3,4,5], timeOfDay: '' })
+  const [editId, setEditId]       = useState(null)
   const [emailSent, setEmailSent]   = useState(false)
   const [exported, setExported]     = useState(false)
   const [backed, setBacked]         = useState(false)
@@ -199,17 +230,41 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
     setSettings(prev => ({ ...prev, [key]: val }))
   }
 
+  function resolvedDays(habit) {
+    return habit.days === 'custom' ? (habit.customDays.length ? habit.customDays : [1,2,3,4,5]) : habit.days
+  }
+
   function addHabit() {
     if (!newHabit.text.trim()) return
-    setRecurringGoals(prev => [
-      ...prev,
-      { id: crypto.randomUUID(), text: newHabit.text.trim(), days: newHabit.days, timeOfDay: newHabit.timeOfDay || null },
-    ])
-    setNewHabit({ text: '', days: 'daily', timeOfDay: '' })
+    if (editId) {
+      setRecurringGoals(prev => prev.map(r => r.id === editId
+        ? { ...r, text: newHabit.text.trim(), days: resolvedDays(newHabit), timeOfDay: newHabit.timeOfDay || null }
+        : r
+      ))
+      setEditId(null)
+    } else {
+      setRecurringGoals(prev => [
+        ...prev,
+        { id: crypto.randomUUID(), text: newHabit.text.trim(), days: resolvedDays(newHabit), timeOfDay: newHabit.timeOfDay || null },
+      ])
+    }
+    setNewHabit({ text: '', days: 'daily', customDays: [1,2,3,4,5], timeOfDay: '' })
   }
 
   function removeHabit(id) {
     setRecurringGoals(prev => prev.filter(r => r.id !== id))
+    if (editId === id) { setEditId(null); setNewHabit({ text: '', days: 'daily', customDays: [1,2,3,4,5], timeOfDay: '' }) }
+  }
+
+  function startEdit(r) {
+    const isCustom = Array.isArray(r.days)
+    setEditId(r.id)
+    setNewHabit({
+      text: r.text,
+      days: isCustom ? 'custom' : r.days,
+      customDays: isCustom ? r.days : [1,2,3,4,5],
+      timeOfDay: r.timeOfDay || '',
+    })
   }
 
   function handleEmail() {
@@ -227,8 +282,6 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
     setExported(true)
     setTimeout(() => setExported(false), 3000)
   }
-
-  const daysLabel = { daily: 'Daily', weekdays: 'Weekdays', weekends: 'Weekends' }
 
   return (
     <div className="modal-overlay" onClick={e => { if (e.target === e.currentTarget) onClose() }}>
@@ -326,19 +379,33 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
               >
                 {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              <button className="add-btn" onClick={addHabit}>Add</button>
+              <button className="add-btn" onClick={addHabit}>{editId ? 'Save' : 'Add'}</button>
+              {editId && (
+                <button className="add-btn" style={{background:'var(--surface2)',color:'var(--text-muted)',border:'1px solid var(--border)'}}
+                  onClick={() => { setEditId(null); setNewHabit({ text:'', days:'daily', customDays:[1,2,3,4,5], timeOfDay:'' }) }}>
+                  Cancel
+                </button>
+              )}
             </div>
+
+            {newHabit.days === 'custom' && (
+              <DayPicker
+                selected={newHabit.customDays}
+                onChange={d => setNewHabit(p => ({ ...p, customDays: d }))}
+              />
+            )}
 
             {recurringGoals.length === 0 ? (
               <div className="settings-empty">No habits yet — add one above</div>
             ) : (
               <ul className="habit-list">
                 {recurringGoals.map(r => (
-                  <li key={r.id} className="habit-list-item">
+                  <li key={r.id} className={`habit-list-item ${editId === r.id ? 'editing' : ''}`}>
                     <span className="habit-item-text">{r.text}</span>
-                    <span className="habit-item-badge">{daysLabel[r.days] || r.days}</span>
+                    <span className="habit-item-badge">{daysLabel(r.days)}</span>
                     {r.timeOfDay && <span className="habit-item-badge muted">{r.timeOfDay}</span>}
-                    <button className="goal-delete visible" onClick={() => removeHabit(r.id)}>&#215;</button>
+                    <button className="goal-delete visible" onClick={() => startEdit(r)} title="Edit">&#9998;</button>
+                    <button className="goal-delete visible" onClick={() => removeHabit(r.id)} title="Delete">&#215;</button>
                   </li>
                 ))}
               </ul>

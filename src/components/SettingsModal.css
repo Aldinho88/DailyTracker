@@ -213,6 +213,36 @@
 
 .goal-delete.visible { opacity: 1; }
 
+.day-picker {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.day-pick-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.day-pick-btn.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.habit-list-item.editing {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
 /* Export */
 .export-btns {
   display: flex;
