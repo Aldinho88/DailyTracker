@@ -82,7 +82,18 @@
   gap: 5px;
   font-size: 0.75rem;
   color: var(--text-muted);
-  cursor: default;
+  cursor: pointer;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.sync-indicator:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: #a78bfa;
 }
 
 .sync-dot {

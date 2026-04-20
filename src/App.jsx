@@ -40,20 +40,25 @@ export default function App() {
     }
   )
 
-  // Debounce writes to Firestore — 2s after last change
+  function syncNow() {
+    write({
+      'tracker-goals':      goalsData,
+      'tracker-recurring':  recurringGoals,
+      'tracker-metrics':    metrics,
+      'tracker-weight-log': weightLog,
+      'tracker-gym':        gymData,
+      'tracker-notes':      notesData,
+    })
+  }
+
+  // Sync when user leaves the app (switches tab, locks phone, closes browser)
   useEffect(() => {
     if (!settings.syncKey?.trim()) return
-    const timer = setTimeout(() => {
-      write({
-        'tracker-goals':       goalsData,
-        'tracker-recurring':   recurringGoals,
-        'tracker-metrics':     metrics,
-        'tracker-weight-log':  weightLog,
-        'tracker-gym':         gymData,
-        'tracker-notes':       notesData,
-      })
-    }, 2000)
-    return () => clearTimeout(timer)
+    function handleVisibility() {
+      if (document.visibilityState === 'hidden') syncNow()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [goalsData, recurringGoals, metrics, weightLog, gymData, notesData, settings.syncKey])
 
   // ── Daily goals ────────────────────────────────────────────────────────────
@@ -135,10 +140,14 @@ export default function App() {
             </div>
           )}
           {settings.syncKey?.trim() && (
-            <div className="sync-indicator" title={STATUS_LABELS[syncStatus] + (lastSynced ? ` · ${lastSynced.toLocaleTimeString()}` : '')}>
+            <button
+              className="sync-indicator"
+              onClick={syncNow}
+              title={`${STATUS_LABELS[syncStatus]}${lastSynced ? ` · ${lastSynced.toLocaleTimeString()}` : ''} · Click to sync now`}
+            >
               <span className="sync-dot" style={{ background: STATUS_COLORS[syncStatus] }} />
-              <span className="sync-label">{STATUS_LABELS[syncStatus]}</span>
-            </div>
+              <span className="sync-label">{syncStatus === 'syncing' ? 'Saving…' : 'Sync'}</span>
+            </button>
           )}
           <button className="settings-btn" onClick={() => setShowSettings(true)} title="Settings">&#9881;</button>
         </div>
