@@ -128,6 +128,14 @@ export default function App() {
     })
   }
 
+  function updateRecurringTimeOfDay(id, t) {
+    setRecurringGoals(prev => prev.map(r => r.id === id ? { ...r, timeOfDay: t || null } : r))
+  }
+
+  function deleteRecurring(id) {
+    setRecurringGoals(prev => prev.filter(r => r.id !== id))
+  }
+
   function handleLogin(username) {
     sessionStorage.setItem('tracker-session', username)
     setCurrentUser(username)
@@ -194,6 +202,8 @@ export default function App() {
                 onDelete={deleteGoal}
                 onUpdateTimeOfDay={updateTimeOfDay}
                 onToggleRecurring={toggleRecurring}
+                onUpdateRecurringTimeOfDay={updateRecurringTimeOfDay}
+                onDeleteRecurring={deleteRecurring}
               />
             </div>
             <div className="card">

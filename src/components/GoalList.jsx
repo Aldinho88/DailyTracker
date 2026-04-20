@@ -16,7 +16,7 @@ const TIME_CYCLE = [null, 'morning', 'afternoon', 'evening']
 const TIME_COLORS = { morning: '#f59e0b', afternoon: '#3b82f6', evening: '#7c3aed' }
 const TIME_LABELS = { morning: 'AM', afternoon: 'PM', evening: 'Eve' }
 
-export default function GoalList({ goals, recurringGoals = [], onAdd, onToggle, onDelete, onUpdateTimeOfDay, onToggleRecurring }) {
+export default function GoalList({ goals, recurringGoals = [], onAdd, onToggle, onDelete, onUpdateTimeOfDay, onToggleRecurring, onUpdateRecurringTimeOfDay, onDeleteRecurring }) {
   const [input, setInput]               = useState('')
   const [showTemplates, setShowTemplates] = useState(false)
 
@@ -85,12 +85,18 @@ export default function GoalList({ goals, recurringGoals = [], onAdd, onToggle, 
                   {r.completed && <span className="goal-check">&#10003;</span>}
                 </button>
                 <span className="goal-text">{r.text}</span>
-                {r.timeOfDay && (
-                  <span className="time-badge" style={{ background: TIME_COLORS[r.timeOfDay] + '28', color: TIME_COLORS[r.timeOfDay], borderColor: TIME_COLORS[r.timeOfDay] + '60' }}>
-                    {TIME_LABELS[r.timeOfDay]}
-                  </span>
-                )}
-                <span className="recurring-icon" title="Daily habit">&#8635;</span>
+                <button
+                  className="time-tag-btn"
+                  onClick={() => {
+                    const idx = TIME_CYCLE.indexOf(r.timeOfDay ?? null)
+                    onUpdateRecurringTimeOfDay(r.id, TIME_CYCLE[(idx + 1) % TIME_CYCLE.length])
+                  }}
+                  title="Set time of day"
+                  style={r.timeOfDay ? { color: TIME_COLORS[r.timeOfDay], borderColor: TIME_COLORS[r.timeOfDay] + '60', background: TIME_COLORS[r.timeOfDay] + '18' } : {}}
+                >
+                  {r.timeOfDay ? TIME_LABELS[r.timeOfDay] : '···'}
+                </button>
+                <button className="goal-delete" onClick={() => onDeleteRecurring(r.id)}>&#215;</button>
               </li>
             ))}
           </ul>
