@@ -1,4 +1,3 @@
-import { useLocalStorage } from '../hooks/useLocalStorage'
 import './GymTracker.css'
 
 const CATEGORIES = [
@@ -32,8 +31,7 @@ function categoryForMuscle(muscle) {
   return CATEGORIES.find(c => c.muscles.includes(muscle))
 }
 
-export default function GymTracker({ selectedDate }) {
-  const [gymData, setGymData] = useLocalStorage('tracker-gym', {})
+export default function GymTracker({ selectedDate, gymData, onGymDataChange: setGymData }) {
 
   const dateStr = toDateStr(selectedDate)
   const dayMuscles = gymData[dateStr] || []

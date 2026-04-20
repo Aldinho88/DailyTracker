@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react'
-import { useLocalStorage } from '../hooks/useLocalStorage'
 import './WeightTracker.css'
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -9,8 +8,7 @@ function fmt(dateStr) {
   return `${MONTHS[d.getMonth()]} ${d.getDate()}`
 }
 
-export default function WeightTracker({ goalWeight, weightUnit }) {
-  const [entries, setEntries] = useLocalStorage('tracker-weight-log', [])
+export default function WeightTracker({ entries, onEntriesChange: setEntries, goalWeight, weightUnit }) {
   const [inputWeight, setInputWeight] = useState('')
   const [inputDate, setInputDate] = useState(new Date().toISOString().split('T')[0])
   const [showAll, setShowAll] = useState(false)

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useLocalStorage } from '../hooks/useLocalStorage'
 import { appliesToDate } from '../utils/goals'
 import './SettingsModal.css'
 
@@ -182,12 +181,13 @@ function exportCSV() {
   }
 }
 
-export default function SettingsModal({ onClose, recurringGoals, setRecurringGoals }) {
-  const [settings, setSettings] = useLocalStorage('tracker-settings', {
-    reminderEnabled: false,
-    reminderTime: '08:00',
-    userEmail: '',
-  })
+const STATUS_COLORS = { idle: '#8b949e', connecting: '#e3b341', syncing: '#e3b341', synced: '#3fb950', error: '#f85149' }
+const STATUS_LABELS = { idle: 'Not connected', connecting: 'Connecting…', syncing: 'Saving…', synced: 'Synced ✓', error: 'Error — check key' }
+
+export default function SettingsModal({ onClose, recurringGoals, setRecurringGoals, settings, onSettingsChange, syncStatus, lastSynced }) {
+  function setSettings(updater) {
+    onSettingsChange(prev => typeof updater === 'function' ? updater(prev) : updater)
+  }
 
   const [newHabit, setNewHabit]   = useState({ text: '', days: 'daily', timeOfDay: '' })
   const [emailSent, setEmailSent]   = useState(false)
@@ -239,6 +239,38 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
         </div>
 
         <div className="modal-body">
+          {/* ── Cloud Sync ── */}
+          <section className="settings-section">
+            <h3 className="settings-section-title">Cloud Sync</h3>
+            <p className="settings-hint">
+              Set the same sync key on all your devices and your data stays in sync automatically — phone, computer, anywhere.
+            </p>
+
+            <div className="settings-row">
+              <label className="settings-label">Sync key</label>
+              <input
+                className="settings-input"
+                type="text"
+                placeholder="e.g. aldo-tracker-2024"
+                value={settings.syncKey || ''}
+                onChange={e => updateSetting('syncKey', e.target.value)}
+                style={{ flex: 1 }}
+              />
+            </div>
+
+            {settings.syncKey?.trim().length >= 4 && (
+              <div className="sync-status-row">
+                <span className="sync-status-dot" style={{ background: STATUS_COLORS[syncStatus] }} />
+                <span className="sync-status-text">{STATUS_LABELS[syncStatus]}</span>
+                {lastSynced && <span className="sync-last">· last sync {lastSynced.toLocaleTimeString()}</span>}
+              </div>
+            )}
+
+            <p className="settings-hint">
+              Make your key at least 8 characters — it acts as your password. Anyone with the same key can read your data.
+            </p>
+          </section>
+
           {/* ── Reminders ── */}
           <section className="settings-section">
             <h3 className="settings-section-title">Reminders</h3>

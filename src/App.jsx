@@ -9,21 +9,57 @@ import DayNotes from './components/DayNotes'
 import CalendarHeatmap from './components/CalendarHeatmap'
 import SettingsModal from './components/SettingsModal'
 import { useLocalStorage } from './hooks/useLocalStorage'
+import { useFirestoreSync } from './hooks/useFirestoreSync'
 import { toDateStr, appliesToDate, getDayCompletion } from './utils/goals'
 import './App.css'
+
+const STATUS_COLORS = { idle: '#8b949e', connecting: '#e3b341', syncing: '#e3b341', synced: '#3fb950', error: '#f85149' }
+const STATUS_LABELS = { idle: 'Not syncing', connecting: 'Connecting…', syncing: 'Saving…', synced: 'Synced', error: 'Sync error' }
 
 export default function App() {
   const [selectedDate, setSelectedDate]     = useState(new Date())
   const [goalsData, setGoalsData]           = useLocalStorage('tracker-goals', {})
   const [metrics, setMetrics]               = useLocalStorage('tracker-metrics', { currentWeight: '', currentFat: '', goalWeight: '', weightUnit: 'lbs' })
   const [recurringGoals, setRecurringGoals] = useLocalStorage('tracker-recurring', [])
-  const [settings]                          = useLocalStorage('tracker-settings', { reminderEnabled: false, reminderTime: '08:00' })
+  const [weightLog, setWeightLog]           = useLocalStorage('tracker-weight-log', [])
+  const [gymData, setGymData]               = useLocalStorage('tracker-gym', {})
+  const [notesData, setNotesData]           = useLocalStorage('tracker-notes', {})
+  const [settings, setSettings]             = useLocalStorage('tracker-settings', { reminderEnabled: false, reminderTime: '08:00', userEmail: '', syncKey: '' })
   const [showSettings, setShowSettings]     = useState(false)
 
+  // ── Firestore sync ─────────────────────────────────────────────────────────
+  const { write, status: syncStatus, lastSynced } = useFirestoreSync(
+    settings.syncKey,
+    remote => {
+      if (remote['tracker-goals'])       setGoalsData(remote['tracker-goals'])
+      if (remote['tracker-recurring'])   setRecurringGoals(remote['tracker-recurring'])
+      if (remote['tracker-metrics'])     setMetrics(remote['tracker-metrics'])
+      if (remote['tracker-weight-log'])  setWeightLog(remote['tracker-weight-log'])
+      if (remote['tracker-gym'])         setGymData(remote['tracker-gym'])
+      if (remote['tracker-notes'])       setNotesData(remote['tracker-notes'])
+    }
+  )
+
+  // Debounce writes to Firestore — 2s after last change
+  useEffect(() => {
+    if (!settings.syncKey?.trim()) return
+    const timer = setTimeout(() => {
+      write({
+        'tracker-goals':       goalsData,
+        'tracker-recurring':   recurringGoals,
+        'tracker-metrics':     metrics,
+        'tracker-weight-log':  weightLog,
+        'tracker-gym':         gymData,
+        'tracker-notes':       notesData,
+      })
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [goalsData, recurringGoals, metrics, weightLog, gymData, notesData, settings.syncKey])
+
+  // ── Daily goals ────────────────────────────────────────────────────────────
   const dateStr = toDateStr(selectedDate)
   const todayGoals = goalsData[dateStr]?.goals || []
 
-  // Recurring goals applicable to selected date with their completion state
   const todayRecurring = useMemo(() => {
     const recurringDone = goalsData[dateStr]?.recurring || {}
     return recurringGoals
@@ -35,15 +71,12 @@ export default function App() {
   const completedCount = todayGoals.filter(g => g.completed).length + todayRecurring.filter(r => r.completed).length
   const progress       = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
 
-  // Streak: consecutive days (including today if done) where completion > 0%
   const streak = useMemo(() => {
     let count = 0
     const ref = new Date()
     for (let i = 0; i < 365; i++) {
-      const d = new Date(ref)
-      d.setDate(ref.getDate() - i)
-      const ds = toDateStr(d)
-      const comp = getDayCompletion(ds, goalsData, recurringGoals)
+      const d = new Date(ref); d.setDate(ref.getDate() - i)
+      const comp = getDayCompletion(toDateStr(d), goalsData, recurringGoals)
       if (!comp) break
       if (comp.pct >= 1) count++
       else break
@@ -51,26 +84,18 @@ export default function App() {
     return count
   }, [goalsData, recurringGoals])
 
-  // Reminder check — runs every 60s while app is open
+  // ── Reminder ───────────────────────────────────────────────────────────────
   useEffect(() => {
     function check() {
       if (!settings.reminderEnabled) return
       if (Notification.permission === 'denied') return
-      const [h, m]  = (settings.reminderTime || '08:00').split(':').map(Number)
-      const now     = new Date()
-      const trigger = new Date(); trigger.setHours(h, m, 0, 0)
+      const [h, m] = (settings.reminderTime || '08:00').split(':').map(Number)
+      const now = new Date(); const trigger = new Date(); trigger.setHours(h, m, 0, 0)
       const todayStr = toDateStr(now)
-      const lastKey  = 'tracker-last-notified'
-      if (now >= trigger && localStorage.getItem(lastKey) !== todayStr) {
-        const send = () => {
-          new Notification('Daily Tracker', { body: "Time to check your daily goals!" })
-          localStorage.setItem(lastKey, todayStr)
-        }
-        if (Notification.permission === 'granted') {
-          send()
-        } else {
-          Notification.requestPermission().then(p => { if (p === 'granted') send() })
-        }
+      if (now >= trigger && localStorage.getItem('tracker-last-notified') !== todayStr) {
+        const send = () => { new Notification('Daily Tracker', { body: 'Time to check your daily goals!' }); localStorage.setItem('tracker-last-notified', todayStr) }
+        if (Notification.permission === 'granted') send()
+        else Notification.requestPermission().then(p => { if (p === 'granted') send() })
       }
     }
     check()
@@ -82,28 +107,16 @@ export default function App() {
   function updateGoals(newGoals) {
     setGoalsData(prev => ({ ...prev, [dateStr]: { ...prev[dateStr], goals: newGoals } }))
   }
-
-  function addGoal(text) {
-    updateGoals([...todayGoals, { id: crypto.randomUUID(), text, completed: false, timeOfDay: null }])
-  }
-
-  function toggleGoal(id) {
-    updateGoals(todayGoals.map(g => g.id === id ? { ...g, completed: !g.completed } : g))
-  }
-
-  function deleteGoal(id) {
-    updateGoals(todayGoals.filter(g => g.id !== id))
-  }
-
-  function updateTimeOfDay(id, timeOfDay) {
-    updateGoals(todayGoals.map(g => g.id === id ? { ...g, timeOfDay } : g))
-  }
+  function addGoal(text)          { updateGoals([...todayGoals, { id: crypto.randomUUID(), text, completed: false, timeOfDay: null }]) }
+  function toggleGoal(id)         { updateGoals(todayGoals.map(g => g.id === id ? { ...g, completed: !g.completed } : g)) }
+  function deleteGoal(id)         { updateGoals(todayGoals.filter(g => g.id !== id)) }
+  function updateTimeOfDay(id, t) { updateGoals(todayGoals.map(g => g.id === id ? { ...g, timeOfDay: t } : g)) }
 
   function toggleRecurring(id) {
     setGoalsData(prev => {
       const day = prev[dateStr] || {}
-      const recurring = day.recurring || {}
-      return { ...prev, [dateStr]: { ...day, goals: day.goals || [], recurring: { ...recurring, [id]: !recurring[id] } } }
+      const rec = day.recurring || {}
+      return { ...prev, [dateStr]: { ...day, goals: day.goals || [], recurring: { ...rec, [id]: !rec[id] } } }
     })
   }
 
@@ -119,6 +132,12 @@ export default function App() {
             <div className="streak-badge">
               <span className="streak-flame">&#9733;</span>
               {streak} day streak
+            </div>
+          )}
+          {settings.syncKey?.trim() && (
+            <div className="sync-indicator" title={STATUS_LABELS[syncStatus] + (lastSynced ? ` · ${lastSynced.toLocaleTimeString()}` : '')}>
+              <span className="sync-dot" style={{ background: STATUS_COLORS[syncStatus] }} />
+              <span className="sync-label">{STATUS_LABELS[syncStatus]}</span>
             </div>
           )}
           <button className="settings-btn" onClick={() => setShowSettings(true)} title="Settings">&#9881;</button>
@@ -145,7 +164,7 @@ export default function App() {
               />
             </div>
             <div className="card">
-              <DayNotes selectedDate={selectedDate} />
+              <DayNotes selectedDate={selectedDate} notes={notesData} onNotesChange={setNotesData} />
             </div>
           </div>
 
@@ -154,13 +173,18 @@ export default function App() {
               <BodyMetrics metrics={metrics} onUpdate={setMetrics} />
             </div>
             <div className="card">
-              <WeightTracker goalWeight={metrics.goalWeight} weightUnit={metrics.weightUnit || 'lbs'} />
+              <WeightTracker
+                entries={weightLog}
+                onEntriesChange={setWeightLog}
+                goalWeight={metrics.goalWeight}
+                weightUnit={metrics.weightUnit || 'lbs'}
+              />
             </div>
           </div>
         </div>
 
         <div className="card full-card">
-          <GymTracker selectedDate={selectedDate} />
+          <GymTracker selectedDate={selectedDate} gymData={gymData} onGymDataChange={setGymData} />
         </div>
 
         <div className="card full-card">
@@ -173,6 +197,10 @@ export default function App() {
           onClose={() => setShowSettings(false)}
           recurringGoals={recurringGoals}
           setRecurringGoals={setRecurringGoals}
+          settings={settings}
+          onSettingsChange={setSettings}
+          syncStatus={syncStatus}
+          lastSynced={lastSynced}
         />
       )}
     </div>

@@ -76,6 +76,28 @@
   color: #a78bfa;
 }
 
+.sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.sync-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sync-label { display: none; }
+
+@media (min-width: 500px) {
+  .sync-label { display: inline; }
+}
+
 .app-main {
   display: flex;
   flex-direction: column;

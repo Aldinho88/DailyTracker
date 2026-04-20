@@ -257,3 +257,24 @@
   border-color: var(--success);
   color: var(--success);
 }
+
+.sync-status-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.sync-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sync-status-text { font-weight: 600; color: var(--text); }
+.sync-last { color: var(--text-muted); font-size: 0.78rem; }
