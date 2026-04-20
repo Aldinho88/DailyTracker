@@ -119,6 +119,7 @@ export default function App() {
   function toggleGoal(id)         { updateGoals(todayGoals.map(g => g.id === id ? { ...g, completed: !g.completed } : g)) }
   function deleteGoal(id)         { updateGoals(todayGoals.filter(g => g.id !== id)) }
   function updateTimeOfDay(id, t) { updateGoals(todayGoals.map(g => g.id === id ? { ...g, timeOfDay: t } : g)) }
+  function editGoal(id, text)     { if (text.trim()) updateGoals(todayGoals.map(g => g.id === id ? { ...g, text: text.trim() } : g)) }
 
   function toggleRecurring(id) {
     setGoalsData(prev => {
@@ -130,6 +131,10 @@ export default function App() {
 
   function updateRecurringTimeOfDay(id, t) {
     setRecurringGoals(prev => prev.map(r => r.id === id ? { ...r, timeOfDay: t || null } : r))
+  }
+
+  function editRecurring(id, text) {
+    if (text.trim()) setRecurringGoals(prev => prev.map(r => r.id === id ? { ...r, text: text.trim() } : r))
   }
 
   function deleteRecurring(id) {
@@ -201,8 +206,10 @@ export default function App() {
                 onToggle={toggleGoal}
                 onDelete={deleteGoal}
                 onUpdateTimeOfDay={updateTimeOfDay}
+                onEditGoal={editGoal}
                 onToggleRecurring={toggleRecurring}
                 onUpdateRecurringTimeOfDay={updateRecurringTimeOfDay}
+                onEditRecurring={editRecurring}
                 onDeleteRecurring={deleteRecurring}
               />
             </div>

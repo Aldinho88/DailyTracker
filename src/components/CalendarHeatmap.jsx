@@ -9,13 +9,15 @@ function buildWeeks() {
   const today = new Date()
   today.setHours(12, 0, 0, 0)
 
-  // Walk back to the Monday that starts our window
-  const totalDays = WEEKS * 7
-  const start = new Date(today)
-  start.setDate(today.getDate() - totalDays + 1)
-  const startDow = start.getDay()
-  const alignBack = startDow === 0 ? 6 : startDow - 1
-  start.setDate(start.getDate() - alignBack)
+  // Anchor to Monday of the current week so today is always in the last column
+  const dow = today.getDay()
+  const daysFromMonday = dow === 0 ? 6 : dow - 1
+  const weekStart = new Date(today)
+  weekStart.setDate(today.getDate() - daysFromMonday)
+
+  // Go back (WEEKS - 1) more weeks for the grid start
+  const start = new Date(weekStart)
+  start.setDate(weekStart.getDate() - (WEEKS - 1) * 7)
 
   const weeks = []
   let cur = new Date(start)

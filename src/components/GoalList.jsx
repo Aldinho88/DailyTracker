@@ -16,9 +16,17 @@ const TIME_CYCLE = [null, 'morning', 'afternoon', 'evening']
 const TIME_COLORS = { morning: '#f59e0b', afternoon: '#3b82f6', evening: '#7c3aed' }
 const TIME_LABELS = { morning: 'AM', afternoon: 'PM', evening: 'Eve' }
 
-export default function GoalList({ goals, recurringGoals = [], onAdd, onToggle, onDelete, onUpdateTimeOfDay, onToggleRecurring, onUpdateRecurringTimeOfDay, onDeleteRecurring }) {
+export default function GoalList({ goals, recurringGoals = [], onAdd, onToggle, onDelete, onUpdateTimeOfDay, onEditGoal, onToggleRecurring, onUpdateRecurringTimeOfDay, onEditRecurring, onDeleteRecurring }) {
   const [input, setInput]               = useState('')
   const [showTemplates, setShowTemplates] = useState(false)
+  const [editingId, setEditingId]       = useState(null)
+  const [editingText, setEditingText]   = useState('')
+
+  function startEdit(id, text) { setEditingId(id); setEditingText(text) }
+  function commitEdit(save, id, saveFn) {
+    if (save && editingText.trim()) saveFn(id, editingText)
+    setEditingId(null); setEditingText('')
+  }
 
   function handleAdd(text) {
     const trimmed = (text || input).trim()
@@ -84,7 +92,21 @@ export default function GoalList({ goals, recurringGoals = [], onAdd, onToggle, 
                 <button className="goal-checkbox" onClick={() => onToggleRecurring(r.id)}>
                   {r.completed && <span className="goal-check">&#10003;</span>}
                 </button>
-                <span className="goal-text">{r.text}</span>
+                {editingId === r.id ? (
+                  <input
+                    className="goal-inline-edit"
+                    value={editingText}
+                    autoFocus
+                    onChange={e => setEditingText(e.target.value)}
+                    onBlur={() => commitEdit(true, r.id, onEditRecurring)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') commitEdit(true, r.id, onEditRecurring)
+                      if (e.key === 'Escape') commitEdit(false)
+                    }}
+                  />
+                ) : (
+                  <span className="goal-text" onDoubleClick={() => startEdit(r.id, r.text)}>{r.text}</span>
+                )}
                 <button
                   className="time-tag-btn"
                   onClick={() => {
@@ -117,7 +139,21 @@ export default function GoalList({ goals, recurringGoals = [], onAdd, onToggle, 
               <button className="goal-checkbox" onClick={() => onToggle(goal.id)}>
                 {goal.completed && <span className="goal-check">&#10003;</span>}
               </button>
-              <span className="goal-text">{goal.text}</span>
+              {editingId === goal.id ? (
+                <input
+                  className="goal-inline-edit"
+                  value={editingText}
+                  autoFocus
+                  onChange={e => setEditingText(e.target.value)}
+                  onBlur={() => commitEdit(true, goal.id, onEditGoal)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') commitEdit(true, goal.id, onEditGoal)
+                    if (e.key === 'Escape') commitEdit(false)
+                  }}
+                />
+              ) : (
+                <span className="goal-text" onDoubleClick={() => startEdit(goal.id, goal.text)}>{goal.text}</span>
+              )}
               <button
                 className="time-tag-btn"
                 onClick={() => cycleTime(goal)}
