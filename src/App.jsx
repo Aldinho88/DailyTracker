@@ -171,8 +171,9 @@ export default function App() {
               <span className="sync-label">{syncStatus === 'syncing' ? 'Saving…' : 'Sync'}</span>
             </button>
           )}
+          <span className="header-username">&#128100; {currentUser}</span>
           <button className="settings-btn" onClick={() => setShowSettings(true)} title="Settings">&#9881;</button>
-          <button className="logout-btn" onClick={handleLogout} title={`Sign out (${currentUser})`}>&#10006;</button>
+          <button className="logout-btn" onClick={handleLogout} title="Sign out">Sign out</button>
         </div>
       </header>
 

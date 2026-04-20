@@ -96,18 +96,32 @@
   color: #a78bfa;
 }
 
+.header-username {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+  display: none;
+}
+
+@media (min-width: 500px) {
+  .header-username { display: inline; }
+}
+
 .logout-btn {
   background: var(--surface2);
   border: 1px solid var(--border);
   color: var(--text-muted);
-  width: 36px;
   height: 36px;
+  padding: 0 12px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 
