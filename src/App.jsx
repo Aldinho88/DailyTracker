@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import DateNav from './components/DateNav'
 import GoalList from './components/GoalList'
 import BodyMetrics from './components/BodyMetrics'
@@ -62,8 +62,10 @@ export default function App() {
     })
   }
 
-  // Sync immediately whenever food log changes
+  // Sync immediately whenever food log changes (skip initial mount)
+  const foodLogMounted = useRef(false)
   useEffect(() => {
+    if (!foodLogMounted.current) { foodLogMounted.current = true; return }
     if (!settings.syncKey?.trim()) return
     const t = setTimeout(syncNow, 400)
     return () => clearTimeout(t)
