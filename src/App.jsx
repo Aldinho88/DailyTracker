@@ -79,6 +79,20 @@ export default function App() {
   const completedCount = todayGoals.filter(g => g.completed).length + todayRecurring.filter(r => r.completed).length
   const progress       = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
 
+  const habitWeeklyStats = useMemo(() => {
+    const stats = {}
+    const today = new Date()
+    const weekDays = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today); d.setDate(today.getDate() - i); return toDateStr(d)
+    })
+    recurringGoals.forEach(r => {
+      if (!r.timesPerWeek) return
+      const done = weekDays.filter(ds => goalsData[ds]?.recurring?.[r.id]).length
+      stats[r.id] = { done, target: r.timesPerWeek }
+    })
+    return stats
+  }, [recurringGoals, goalsData])
+
   const streak = useMemo(() => {
     let count = 0
     const ref = new Date()
@@ -115,7 +129,8 @@ export default function App() {
   function updateGoals(newGoals) {
     setGoalsData(prev => ({ ...prev, [dateStr]: { ...prev[dateStr], goals: newGoals } }))
   }
-  function addGoal(text)          { updateGoals([...todayGoals, { id: crypto.randomUUID(), text, completed: false, timeOfDay: null }]) }
+  function addGoal(text, timeOfDay = null) { updateGoals([...todayGoals, { id: crypto.randomUUID(), text, completed: false, timeOfDay }]) }
+  function addRecurring(habit)    { setRecurringGoals(prev => [...prev, { id: crypto.randomUUID(), ...habit }]) }
   function toggleGoal(id)         { updateGoals(todayGoals.map(g => g.id === id ? { ...g, completed: !g.completed } : g)) }
   function deleteGoal(id)         { updateGoals(todayGoals.filter(g => g.id !== id)) }
   function updateTimeOfDay(id, t) { updateGoals(todayGoals.map(g => g.id === id ? { ...g, timeOfDay: t } : g)) }
@@ -202,7 +217,9 @@ export default function App() {
               <GoalList
                 goals={todayGoals}
                 recurringGoals={todayRecurring}
+                habitWeeklyStats={habitWeeklyStats}
                 onAdd={addGoal}
+                onAddRecurring={addRecurring}
                 onToggle={toggleGoal}
                 onDelete={deleteGoal}
                 onUpdateTimeOfDay={updateTimeOfDay}
