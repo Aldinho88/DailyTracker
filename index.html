@@ -7,11 +7,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#0d1117" />
+    <link rel="manifest" href="/DailyTracker/manifest.json" />
+    <link rel="icon" href="/DailyTracker/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/DailyTracker/icon.svg" />
     <title>Daily Tracker</title>
-    <script type="module" crossorigin src="/DailyTracker/assets/index-DfkSoHep.js"></script>
-    <link rel="stylesheet" crossorigin href="/DailyTracker/assets/index-DovhyzQ2.css">
+    <script type="module" crossorigin src="/DailyTracker/assets/index-ComvLIrB.js"></script>
+    <link rel="stylesheet" crossorigin href="/DailyTracker/assets/index-26jtoyM8.css">
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/DailyTracker/sw.js', { scope: '/DailyTracker/' })
+        })
+      }
+    </script>
   </body>
 </html>

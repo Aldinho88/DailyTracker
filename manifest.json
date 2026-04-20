@@ -1,0 +1,19 @@
+{
+  "name": "Daily Tracker",
+  "short_name": "Tracker",
+  "description": "Daily goals, habits, food, and fitness tracker",
+  "start_url": "/DailyTracker/",
+  "scope": "/DailyTracker/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/DailyTracker/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
