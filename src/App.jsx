@@ -62,6 +62,13 @@ export default function App() {
     })
   }
 
+  // Sync immediately whenever food log changes
+  useEffect(() => {
+    if (!settings.syncKey?.trim()) return
+    const t = setTimeout(syncNow, 400)
+    return () => clearTimeout(t)
+  }, [foodLog])
+
   // Sync when user leaves the app (switches tab, locks phone, closes browser)
   useEffect(() => {
     if (!settings.syncKey?.trim()) return
