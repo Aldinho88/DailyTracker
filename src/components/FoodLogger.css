@@ -1,5 +1,65 @@
 .food-logger { display: flex; flex-direction: column; gap: 14px; }
 
+.food-logger-header { display: flex; align-items: center; justify-content: space-between; }
+
+/* Mode tabs */
+.food-mode-tabs { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.food-tab { padding: 6px 16px; background: var(--surface2); border: none; color: var(--text-muted); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: background 0.12s, color 0.12s; }
+.food-tab + .food-tab { border-left: 1px solid var(--border); }
+.food-tab.on { background: var(--accent); color: white; }
+
+/* Meal tabs */
+.food-meal-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.food-meal-tab { padding: 5px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; color: var(--text-muted); font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: background 0.12s, color 0.12s, border-color 0.12s; }
+.food-meal-tab.on { background: var(--accent); border-color: var(--accent); color: white; }
+
+/* Manual form */
+.food-manual-form { display: flex; flex-direction: column; gap: 10px; }
+
+.food-manual-desc {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.food-manual-desc:focus { border-color: var(--accent); }
+.food-manual-desc::placeholder { color: var(--text-muted); }
+
+.food-manual-macros { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+.food-manual-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.food-manual-field span { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.food-manual-field input {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  outline: none;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.food-manual-field input:focus { border-color: var(--accent); }
+
+/* Log grouped by meal */
+.food-log-meal-group { display: flex; flex-direction: column; gap: 3px; }
+.food-log-meal-header { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px; }
+.food-log-meal-name { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.food-log-meal-cal { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
+
 /* Today summary */
 .food-today-summary {
   display: flex;
