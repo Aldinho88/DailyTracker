@@ -244,9 +244,6 @@ export default function App() {
               <BodyMetrics metrics={metrics} onUpdate={setMetrics} />
             </div>
             <div className="card">
-              <CalorieCalculator profile={calorieProfile} onProfileChange={setCalorieProfile} />
-            </div>
-            <div className="card">
               <WeightTracker
                 entries={weightLog}
                 onEntriesChange={setWeightLog}
@@ -255,6 +252,10 @@ export default function App() {
               />
             </div>
           </div>
+        </div>
+
+        <div className="card full-card">
+          <CalorieCalculator profile={calorieProfile} onProfileChange={setCalorieProfile} />
         </div>
 
         <div className="card full-card">
