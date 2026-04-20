@@ -1,0 +1,147 @@
+.heatmap-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.legend-txt {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 0 3px;
+}
+
+.legend-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+}
+
+.heatmap-scroll {
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.heatmap-month-row {
+  display: flex;
+  margin-bottom: 3px;
+}
+
+.heatmap-day-spacer {
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.heatmap-month-cell {
+  width: 14px;
+  margin-right: 2px;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: visible;
+  flex-shrink: 0;
+}
+
+.heatmap-body {
+  display: flex;
+  gap: 4px;
+}
+
+.heatmap-dow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+  width: 24px;
+}
+
+.heatmap-dow-label {
+  height: 12px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  line-height: 12px;
+  text-align: right;
+}
+
+.heatmap-grid {
+  display: flex;
+  gap: 2px;
+}
+
+.heatmap-week-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.heatmap-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--surface2);
+  border: 1px solid rgba(48, 54, 61, 0.5);
+  position: relative;
+  cursor: default;
+  transition: transform 0.1s;
+  flex-shrink: 0;
+}
+
+.heatmap-cell:hover { transform: scale(1.4); z-index: 1; }
+.heatmap-cell.today { outline: 1.5px solid var(--accent); outline-offset: 1px; }
+.heatmap-cell.future { background: transparent; border-color: transparent; }
+
+.heatmap-gym-dot {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--warning);
+  display: block;
+}
+
+.heatmap-gym-dot.inline {
+  position: static;
+  display: inline-block;
+  vertical-align: middle;
+  width: 7px;
+  height: 7px;
+  margin-right: 3px;
+}
+
+.heatmap-key {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.heatmap-key-item {
+  display: flex;
+  align-items: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  gap: 4px;
+}
+
+.heatmap-key-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
