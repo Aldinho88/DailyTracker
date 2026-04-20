@@ -3,7 +3,6 @@ import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { db } from '../firebase'
 import './LoginScreen.css'
 
-// SHA-256 hash using Web Crypto API
 async function hashPassword(password) {
   const data = new TextEncoder().encode(password + ':daily-tracker-v1')
   const hash = await crypto.subtle.digest('SHA-256', data)
@@ -40,72 +39,6 @@ async function resetPassword(username, oldPassword, newPassword) {
   return snap.data().syncKey
 }
 
-// ── Sub-components ──────────────────────────────────────────────────────────
-
-function PinDots({ pin, length = 4 }) {
-  return (
-    <div className="pin-dots">
-      {Array.from({ length }).map((_, i) => (
-        <span key={i} className={`pin-dot ${i < pin.length ? 'filled' : ''}`} />
-      ))}
-    </div>
-  )
-}
-
-function PinPad({ onDigit, onDelete }) {
-  const keys = ['1','2','3','4','5','6','7','8','9','','0','del']
-  return (
-    <div className="pin-pad">
-      {keys.map((k, i) =>
-        k === '' ? <div key={i} /> :
-        k === 'del'
-          ? <button key={i} className="pin-key del" onClick={onDelete}>⌫</button>
-          : <button key={i} className="pin-key" onClick={() => onDigit(k)}>{k}</button>
-      )}
-    </div>
-  )
-}
-
-function PinSetup({ onDone, onSkip }) {
-  const [pin, setPin]     = useState('')
-  const [confirm, setConfirm] = useState('')
-  const [step, setStep]   = useState(1)
-  const [error, setError] = useState('')
-
-  function handleDigit(d) {
-    if (step === 1) {
-      const next = pin + d; setPin(next)
-      if (next.length === 4) setStep(2)
-    } else {
-      const next = confirm + d; setConfirm(next)
-      if (next.length === 4) {
-        if (next === pin) { onDone(pin) }
-        else { setError('PINs did not match — try again'); setPin(''); setConfirm(''); setStep(1) }
-      }
-    }
-  }
-  function handleDelete() {
-    if (step === 1) setPin(p => p.slice(0,-1))
-    else setConfirm(c => c.slice(0,-1))
-  }
-
-  return (
-    <div className="login-screen">
-      <div className="login-card">
-        <div className="login-logo">&#9635;</div>
-        <h1 className="login-title">Set your PIN</h1>
-        <p className="login-sub">{step === 1 ? 'Choose a 4-digit PIN for quick access' : 'Confirm your PIN'}</p>
-        <PinDots pin={step === 1 ? pin : confirm} />
-        {error && <p className="login-error">{error}</p>}
-        <PinPad onDigit={handleDigit} onDelete={handleDelete} />
-        <button className="login-text-btn" onClick={onSkip}>Skip for now</button>
-      </div>
-    </div>
-  )
-}
-
-// ── Shared form fields ──────────────────────────────────────────────────────
-
 function Field({ label, type, value, onChange, placeholder, autoComplete }) {
   const [show, setShow] = useState(false)
   const isPassword = type === 'password'
@@ -131,80 +64,25 @@ function Field({ label, type, value, onChange, placeholder, autoComplete }) {
   )
 }
 
-// ── Main component ──────────────────────────────────────────────────────────
-
 export default function LoginScreen({ onLogin }) {
   const savedUsername = localStorage.getItem('tracker-username') || ''
-  const hasPin        = !!localStorage.getItem('tracker-pin')
 
-  const [mode, setMode]         = useState(savedUsername && hasPin ? 'pin' : 'entry')
+  const [mode, setMode]         = useState('entry')
   const [username, setUsername] = useState(savedUsername)
   const [password, setPassword] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
   const [newPw, setNewPw]       = useState('')
-  const [pin, setPin]           = useState('')
   const [error, setError]       = useState('')
   const [loading, setLoading]   = useState(false)
-  const [pendingSyncKey, setPendingSyncKey] = useState('')
-  const [pendingUsername, setPendingUsername] = useState('')
 
   function clearError() { setError('') }
 
-  // Called after Firestore auth succeeds — save locally, then set up PIN
-  function afterAuth(user, syncKey) {
-    setPendingUsername(user)
-    setPendingSyncKey(syncKey)
-    setMode('setup-pin')
-  }
-
-  function finishLogin(user, syncKey, chosenPin) {
+  function finishLogin(user, syncKey) {
     localStorage.setItem('tracker-username', user)
-    if (chosenPin) localStorage.setItem('tracker-pin', chosenPin)
+    localStorage.removeItem('tracker-pin')
     const existing = JSON.parse(localStorage.getItem('tracker-settings') || '{}')
     localStorage.setItem('tracker-settings', JSON.stringify({ ...existing, syncKey }))
     onLogin(user)
-  }
-
-  // ── PIN login ────────────────────────────────────────────────────────────
-  if (mode === 'pin') {
-    function handlePinDigit(d) {
-      const next = pin + d; setPin(next); clearError()
-      if (next.length === 4) {
-        if (next === localStorage.getItem('tracker-pin')) {
-          sessionStorage.setItem('tracker-session', savedUsername)
-          onLogin(savedUsername)
-        } else {
-          setError('Wrong PIN')
-          setTimeout(() => setPin(''), 700)
-        }
-      }
-    }
-    return (
-      <div className="login-screen">
-        <div className="login-card">
-          <div className="login-logo">&#9635;</div>
-          <h1 className="login-title">Welcome back</h1>
-          <p className="login-sub login-username">{savedUsername}</p>
-          <PinDots pin={pin} />
-          {error && <p className="login-error">{error}</p>}
-          <PinPad onDigit={handlePinDigit} onDelete={() => { setPin(p => p.slice(0,-1)); clearError() }} />
-          <button className="login-text-btn" onClick={() => {
-            localStorage.removeItem('tracker-pin')
-            setPin(''); setPassword(''); setMode('entry')
-          }}>Use password instead</button>
-        </div>
-      </div>
-    )
-  }
-
-  // ── PIN setup after auth ─────────────────────────────────────────────────
-  if (mode === 'setup-pin') {
-    return (
-      <PinSetup
-        onDone={pin => finishLogin(pendingUsername, pendingSyncKey, pin)}
-        onSkip={() => finishLogin(pendingUsername, pendingSyncKey, null)}
-      />
-    )
   }
 
   // ── Sign in ──────────────────────────────────────────────────────────────
@@ -215,7 +93,7 @@ export default function LoginScreen({ onLogin }) {
       setLoading(true); setError('')
       try {
         const syncKey = await signIn(username.trim(), password)
-        afterAuth(username.trim(), syncKey)
+        finishLogin(username.trim(), syncKey)
       } catch (err) { setError(err.message) }
       finally { setLoading(false) }
     }
@@ -247,7 +125,7 @@ export default function LoginScreen({ onLogin }) {
       setLoading(true); setError('')
       try {
         const syncKey = await signUp(username.trim(), password)
-        afterAuth(username.trim(), syncKey)
+        finishLogin(username.trim(), syncKey)
       } catch (err) { setError(err.message) }
       finally { setLoading(false) }
     }
@@ -278,7 +156,7 @@ export default function LoginScreen({ onLogin }) {
       setLoading(true); setError('')
       try {
         const syncKey = await resetPassword(username.trim(), password, newPw)
-        afterAuth(username.trim(), syncKey)
+        finishLogin(username.trim(), syncKey)
       } catch (err) { setError(err.message) }
       finally { setLoading(false) }
     }
@@ -300,13 +178,13 @@ export default function LoginScreen({ onLogin }) {
     )
   }
 
-  // ── Entry (choose sign in or sign up) ────────────────────────────────────
+  // ── Entry ────────────────────────────────────────────────────────────────
   return (
     <div className="login-screen">
       <div className="login-card">
         <div className="login-logo">&#9635;</div>
         <h1 className="login-title">Daily Tracker</h1>
-        <p className="login-sub">Your personal fitness & goals tracker</p>
+        <p className="login-sub">Your personal fitness &amp; goals tracker</p>
         <div className="entry-btns">
           <button className="login-btn" onClick={() => { setMode('signin'); clearError() }}>Sign in</button>
           <button className="login-btn secondary" onClick={() => { setMode('signup'); clearError() }}>Create account</button>
