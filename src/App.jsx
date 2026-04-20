@@ -8,6 +8,7 @@ import GymTracker from './components/GymTracker'
 import DayNotes from './components/DayNotes'
 import CalendarHeatmap from './components/CalendarHeatmap'
 import SettingsModal from './components/SettingsModal'
+import LoginScreen from './components/LoginScreen'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useFirestoreSync } from './hooks/useFirestoreSync'
 import { toDateStr, appliesToDate, getDayCompletion } from './utils/goals'
@@ -26,6 +27,8 @@ export default function App() {
   const [notesData, setNotesData]           = useLocalStorage('tracker-notes', {})
   const [settings, setSettings]             = useLocalStorage('tracker-settings', { reminderEnabled: false, reminderTime: '08:00', userEmail: '', syncKey: '' })
   const [showSettings, setShowSettings]     = useState(false)
+  const [loggedIn, setLoggedIn]             = useState(() => !!sessionStorage.getItem('tracker-session'))
+  const [currentUser, setCurrentUser]       = useState(() => sessionStorage.getItem('tracker-session') || '')
 
   // ── Firestore sync ─────────────────────────────────────────────────────────
   const { write, status: syncStatus, lastSynced } = useFirestoreSync(
@@ -125,6 +128,25 @@ export default function App() {
     })
   }
 
+  function handleLogin(username) {
+    sessionStorage.setItem('tracker-session', username)
+    setCurrentUser(username)
+    setLoggedIn(true)
+    // Re-read settings in case setup just wrote a new syncKey
+    try {
+      const s = JSON.parse(localStorage.getItem('tracker-settings') || '{}')
+      if (s.syncKey) setSettings(prev => ({ ...prev, syncKey: s.syncKey }))
+    } catch {}
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem('tracker-session')
+    setLoggedIn(false)
+    setCurrentUser('')
+  }
+
+  if (!loggedIn) return <LoginScreen onLogin={handleLogin} />
+
   return (
     <div className="app">
       <header className="app-header">
@@ -150,6 +172,7 @@ export default function App() {
             </button>
           )}
           <button className="settings-btn" onClick={() => setShowSettings(true)} title="Settings">&#9881;</button>
+          <button className="logout-btn" onClick={handleLogout} title={`Sign out (${currentUser})`}>&#10006;</button>
         </div>
       </header>
 
