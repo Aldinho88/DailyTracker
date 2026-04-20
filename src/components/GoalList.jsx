@@ -132,18 +132,19 @@ export default function GoalList({
           {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
         {schedule !== 'none' && (
-          <div className="add-opt-freq">
+          <label className="add-opt-freq-label">
+            Goal:
             <input
               className="add-opt-num"
               type="number"
               min="1"
               max="7"
-              placeholder="x/wk"
+              placeholder="—"
               value={timesPerWeek}
               onChange={e => setTimesPerWeek(e.target.value)}
-              title="Target: how many days per week"
             />
-          </div>
+            days/wk
+          </label>
         )}
       </div>
 

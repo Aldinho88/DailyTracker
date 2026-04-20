@@ -219,7 +219,7 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
     onSettingsChange(prev => typeof updater === 'function' ? updater(prev) : updater)
   }
 
-  const [newHabit, setNewHabit]   = useState({ text: '', days: 'daily', customDays: [1,2,3,4,5], timeOfDay: '' })
+  const [newHabit, setNewHabit]   = useState({ text: '', days: 'daily', customDays: [1,2,3,4,5], timeOfDay: '', timesPerWeek: '' })
   const [editId, setEditId]       = useState(null)
   const [emailSent, setEmailSent]   = useState(false)
   const [exported, setExported]     = useState(false)
@@ -236,19 +236,20 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
 
   function addHabit() {
     if (!newHabit.text.trim()) return
+    const timesPerWeek = newHabit.timesPerWeek ? Number(newHabit.timesPerWeek) : null
     if (editId) {
       setRecurringGoals(prev => prev.map(r => r.id === editId
-        ? { ...r, text: newHabit.text.trim(), days: resolvedDays(newHabit), timeOfDay: newHabit.timeOfDay || null }
+        ? { ...r, text: newHabit.text.trim(), days: resolvedDays(newHabit), timeOfDay: newHabit.timeOfDay || null, timesPerWeek }
         : r
       ))
       setEditId(null)
     } else {
       setRecurringGoals(prev => [
         ...prev,
-        { id: crypto.randomUUID(), text: newHabit.text.trim(), days: resolvedDays(newHabit), timeOfDay: newHabit.timeOfDay || null },
+        { id: crypto.randomUUID(), text: newHabit.text.trim(), days: resolvedDays(newHabit), timeOfDay: newHabit.timeOfDay || null, timesPerWeek },
       ])
     }
-    setNewHabit({ text: '', days: 'daily', customDays: [1,2,3,4,5], timeOfDay: '' })
+    setNewHabit({ text: '', days: 'daily', customDays: [1,2,3,4,5], timeOfDay: '', timesPerWeek: '' })
   }
 
   function removeHabit(id) {
@@ -264,6 +265,7 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
       days: isCustom ? 'custom' : r.days,
       customDays: isCustom ? r.days : [1,2,3,4,5],
       timeOfDay: r.timeOfDay || '',
+      timesPerWeek: r.timesPerWeek != null ? String(r.timesPerWeek) : '',
     })
   }
 
@@ -379,6 +381,19 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
               >
                 {TIME_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
+              <label className="settings-freq-label">
+                Goal:
+                <input
+                  className="settings-input settings-freq-input"
+                  type="number"
+                  min="1"
+                  max="7"
+                  placeholder="—"
+                  value={newHabit.timesPerWeek}
+                  onChange={e => setNewHabit(p => ({ ...p, timesPerWeek: e.target.value }))}
+                />
+                days/wk
+              </label>
               <button className="add-btn" onClick={addHabit}>{editId ? 'Save' : 'Add'}</button>
               {editId && (
                 <button className="add-btn" style={{background:'var(--surface2)',color:'var(--text-muted)',border:'1px solid var(--border)'}}
@@ -403,6 +418,7 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
                   <li key={r.id} className={`habit-list-item ${editId === r.id ? 'editing' : ''}`}>
                     <span className="habit-item-text">{r.text}</span>
                     <span className="habit-item-badge">{daysLabel(r.days)}</span>
+                    {r.timesPerWeek != null && <span className="habit-item-badge muted">Goal: {r.timesPerWeek}/wk</span>}
                     {r.timeOfDay && <span className="habit-item-badge muted">{r.timeOfDay}</span>}
                     <button className="goal-delete visible" onClick={() => startEdit(r)} title="Edit">&#9998;</button>
                     <button className="goal-delete visible" onClick={() => removeHabit(r.id)} title="Delete">&#215;</button>
