@@ -9,6 +9,7 @@ import DayNotes from './components/DayNotes'
 import CalendarHeatmap from './components/CalendarHeatmap'
 import SettingsModal from './components/SettingsModal'
 import CalorieCalculator from './components/CalorieCalculator'
+import FoodLogger from './components/FoodLogger'
 import LoginScreen from './components/LoginScreen'
 import { useLocalStorage } from './hooks/useLocalStorage'
 import { useFirestoreSync } from './hooks/useFirestoreSync'
@@ -256,6 +257,10 @@ export default function App() {
 
         <div className="card full-card">
           <CalorieCalculator profile={calorieProfile} onProfileChange={setCalorieProfile} />
+        </div>
+
+        <div className="card full-card">
+          <FoodLogger apiKey={settings.openaiKey || ''} />
         </div>
 
         <div className="card full-card">

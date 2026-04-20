@@ -294,6 +294,26 @@ export default function SettingsModal({ onClose, recurringGoals, setRecurringGoa
         </div>
 
         <div className="modal-body">
+          {/* ── Food Logger ── */}
+          <section className="settings-section">
+            <h3 className="settings-section-title">Food Logger (OpenAI)</h3>
+            <p className="settings-hint">Your API key is stored only on this device — it is never synced or shared.</p>
+            <div className="settings-row">
+              <label className="settings-label">OpenAI API key</label>
+              <input
+                className="settings-input"
+                type="password"
+                placeholder="sk-..."
+                value={settings.openaiKey || ''}
+                onChange={e => updateSetting('openaiKey', e.target.value)}
+                style={{ flex: 1 }}
+              />
+            </div>
+            <p className="settings-hint">
+              Get your key at <strong>platform.openai.com → API keys</strong>. Each photo analysis costs ~$0.01.
+            </p>
+          </section>
+
           {/* ── Cloud Sync ── */}
           <section className="settings-section">
             <h3 className="settings-section-title">Cloud Sync</h3>
